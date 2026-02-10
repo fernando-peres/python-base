@@ -1,0 +1,142 @@
+[project]
+name = "python-base"
+version = "0.1.0"
+description = "AI Service for Events Predictions"
+readme = "README.md"
+authors = [
+    { name = "fernando-peres", email = "fernando.peres@icloud.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "colorlog>=6.10.1",
+    "python-dotenv>=1.2.1",
+    "pydantic>=2.12.4",
+    "pydantic-settings>=2.12.0"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [".", "src"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "ipykernel>=7.2.0",
+    "mypy>=1.16.1",
+    "pre-commit>=4.2.0",
+    "ruff>=0.12.0",
+    "pytest-asyncio>=1.3.0",
+    "playwright>=1.48.0",
+    "pytest-playwright>=0.4.4",
+]
+
+# ****************************************************************************************
+# Formatting, Linting, Type Checking, Import Sorting
+# ****************************************************************************************
+
+[tool.ruff]
+line-length = 98
+target-version = "py313"
+fix = true
+exclude = [
+    ".venv",
+    "build",
+    "dist",
+    "__pypackages__",
+    "scripts",  # Ignore scripts folder and all subfolders
+    "docs",
+    "*.md",
+    "*.txt",
+    "*.toml",
+    "*.json",
+    "*.yaml",
+    "*.yml",
+    "*.cfg",
+    "*.ini",
+    "*.ipynb",
+    ".github",
+    ".vscode",
+    ".cursor",
+    "static",
+]
+src = [".", "src", "tests"]
+
+[tool.ruff.format]
+indent-style = "space"
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "I"]
+extend-select = [
+    "UP",  # pyupgrade rules
+    "SIM", # simplify rules
+    "C90", # mccabe complexity checks
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["main_lib", "main"]
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 200  # More lenient for documentation
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+exclude = [
+    "(list|create)/bin",
+    "^(\\.venv|env|venv|list|create)/",
+    "^scripts/",  # Ignore scripts folder and all subfolders
+    "^(?!src/|tests/|main\\.py|config\\.py).*",
+]
+ignore_missing_imports = true
+explicit_package_bases = true
+mypy_path = "/service"
+disable_error_code = ["misc"]
+
+# -------------------------------------------------------------------------------------
+# PyTest
+# -------------------------------------------------------------------------------------
+[tool.pytest.ini_options]
+pythonpath = [".", "service"]
+addopts = [
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-report=lcov",
+    "--cov-fail-under=0",
+    "--cov-config=pyproject.toml",
+    "--cov-branch",
+]
+log_cli = true
+log_cli_level = "INFO"
+asyncio_mode = "auto"
+markers = [
+    "asyncio: Mark a test as a test that needs to run with pytest-asyncio",
+    "ui: Mark a test as a UI test that requires browser automation",
+    "postgres: Mark a test as requiring a running Postgres database",
+
+]
+
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.coverage.run]
+omit = [
+    "debug.py",
+    "**/__init__.py",
+    "tests/**"
+    
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError"
+]
