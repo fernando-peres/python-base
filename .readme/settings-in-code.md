@@ -5,10 +5,7 @@ The configuration is available through the centralized `settings` object:
 ```python
 from service.config import settings
 
-# Access nested settings
-api_key = settings.openrouter.api_key
-rabbitmq_url = settings.rabbitmq.get_connection_url()
-log_level = settings.logging.logging_level
+logging_level = settings.logging_level
 ```
 
 Or via dependency injection:
@@ -17,9 +14,39 @@ Or via dependency injection:
 from service.shared.registry import inject
 from service.shared.vocabulary import ResourceName
 
-settings = inject(ResourceName.CONFIG)
-rabbitmq_config = settings.rabbitmq
+settings = inject(ResourceName.SETTINGS) 
+logging_level = settings.logging_level
 ```
+
+## Environment files
+
+The application supports multiple environment-specific files for different deployment scenarios. A script copies the chosen file into `.env` (the active config); the source file is left unchanged, so you can switch between environments without losing data.
+
+- **`.env.local`** – Local development environment
+- **`.env.dev`** – Development server environment
+- **`.env.stage`** – Staging environment
+- **`.env.prd`** – Production environment
+- **`.env`** – Active configuration file (used by the application)
+
+To support more file names (e.g. `.env.qa`), add them to `.scripts/switch_env.py`.
+
+**Note:** Environment-specific files (`.env.local`, `.env.dev`, `.env.stage`, `.env.prd`) are gitignored and must not be committed. Only `.env.example` is tracked.
+
+## Selecting an environment
+
+Use the `switch_env.py` script to switch between different environment configurations. The script copies the content of the selected environment file to `.env`, which is then used by the application. The original environment-specific files remain untouched.
+
+```bash
+# Switch to development environment
+python .scripts/switch_env.py --dev
+```
+
+**Parameters:**
+
+- `--local` – Local environment
+- `--dev` – Development environment
+- `--stage` – Staging environment
+- `--prd` – Production environment
 
 ## Configuration Reference
 

@@ -1,0 +1,48 @@
+---
+description: Registry pattern, vocabulary (ResourceName), and bootstrap (initialize_service_resources)
+globs: "**/*.py"
+alwaysApply: false
+---
+
+# Bootstrap and Registry
+
+## Registry
+
+Use `inject(name)` from `service.shared.registry` to obtain resources. Do not construct logger, settings, or other registered dependencies directly.
+
+```python
+from service.shared.registry import inject
+from service.config.vocabulary import ResourceName
+
+logger = inject(ResourceName.LOGGER)
+settings = inject(ResourceName.SETTINGS)
+```
+
+## Vocabulary
+
+Resource names are defined in `service.config.vocabulary.ResourceName` (StrEnum). To add a new resource type, add a member to `ResourceName` and register it in `service.config.bootstrap.initialize_service_resources()`.
+
+## Bootstrap
+
+When writing or modifying the main entry point or tests that use `inject(...)`, ensure `initialize_service_resources()` is called at startup so the registry is populated.
+
+**Correct — main entry point:**
+
+```python
+from service.config.bootstrap import initialize_service_resources
+from service.config.vocabulary import ResourceName
+from service.shared.registry import inject
+
+if __name__ == "__main__":
+    initialize_service_resources()
+    logger = inject(ResourceName.LOGGER)
+    logger.info("Service initialized")
+```
+
+**Tests:** If tests use `inject(ResourceName.LOGGER)` or other registered resources, call `initialize_service_resources()` at test startup (e.g. in `conftest.py` or a session-scoped fixture).
+
+## Imports
+
+- `inject` → `service.shared.registry`
+- `ResourceName` → `service.config.vocabulary`
+- `initialize_service_resources` → `service.config.bootstrap`
