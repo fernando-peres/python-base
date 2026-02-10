@@ -103,7 +103,7 @@ disable_error_code = ["misc"]
 # PyTest
 # -------------------------------------------------------------------------------------
 [tool.pytest.ini_options]
-pythonpath = [".", "service"]
+pythonpath = [".", "src", "service"]
 addopts = [
     "--cov=src",
     "--cov-report=term-missing",
