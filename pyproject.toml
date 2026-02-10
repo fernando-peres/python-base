@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = [".", "src"]
+packages = [".", "service"]
 
 [build-system]
 requires = ["hatchling"]
@@ -63,7 +63,7 @@ exclude = [
     ".cursor",
     "static",
 ]
-src = [".", "src", "tests"]
+src = [".", "service", "tests"]
 
 [tool.ruff.format]
 indent-style = "space"
@@ -103,9 +103,9 @@ disable_error_code = ["misc"]
 # PyTest
 # -------------------------------------------------------------------------------------
 [tool.pytest.ini_options]
-pythonpath = [".", "src", "service"]
+pythonpath = [".", "service"]
 addopts = [
-    "--cov=src",
+    "--cov=main",
     "--cov-report=term-missing",
     "--cov-report=lcov",
     "--cov-fail-under=0",
@@ -127,6 +127,7 @@ markers = [
 default-groups = ["dev"]
 
 [tool.coverage.run]
+source = ["service"]
 omit = [
     "debug.py",
     "**/__init__.py",

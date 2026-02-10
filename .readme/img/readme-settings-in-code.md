@@ -28,7 +28,7 @@ rabbitmq_config = settings.rabbitmq
 - `THIRD_PARTY_LOGGERS_LEVEL` (default: `20` / INFO) - Third-party library logger level
 
 #### General Settings
-- `ENVIRONMENT` (default: `"unknown"`) - Current environment (local, dev, stage, prd)
+- `ENVIRONMENT` (default: `"local"`) - Current environment (local, dev, stage, prd)
 
 
 ## Type Safety and Validation
