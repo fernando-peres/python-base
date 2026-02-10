@@ -1,4 +1,4 @@
-# [Project Name]
+# Python-base template
 
 This service provides ...
 
@@ -24,7 +24,7 @@ When cloning this repo or starting a new service from this base, run [`.scripts/
 
 - Prompt for a project name (alphanumeric, hyphens, underscores)
 - Create or overwrite `.env` and `.env.local` from `.env.example`
-- Set `SERVICE_NAME` in both files and update the `name` in `pyproject.toml`
+- Set `SERVICE_NAME` in both files and update the `name` in `pyproject.toml` and the title in `README.md`
 
 ```bash
 ./.scripts/set-service.sh

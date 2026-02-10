@@ -26,13 +26,7 @@ See [README.md – Setting the service name](README.md#setting-the-service-name-
 
 - In **`tests/unit/test_main.py`**: the test `test_sum_two_numbers_with_positive_integers_returns_sum` and the import `from main import sum_two_numbers` are only for the example.
 - **Either** delete this test (and the file if it becomes empty, or leave a minimal placeholder test), **or** replace it with a real test for your entrypoint (e.g. that the app starts or that bootstrap runs without error).
-
-## 4. Optional follow-ups
-
-- Update **README.md**: replace “[Project Name]” and “This service provides …” with your project name and short description.
-- Adjust **`pyproject.toml`**: `description` and any other project metadata.
-- Remove or refresh **`coverage.lcov`** after removing the example code so coverage reflects the real codebase.
-
+  
 ---
 
 ## Recommended read

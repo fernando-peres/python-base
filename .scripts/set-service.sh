@@ -46,5 +46,12 @@ else
   echo "Warning: pyproject.toml not found, skipping."
 fi
 
-echo "Done. SERVICE_NAME and pyproject.toml name set to: $SANITIZED_NAME"
+# Update project name in README.md (replace the placeholder heading)
+if [[ -f README.md ]]; then
+  sed "s/^# \[Project Name\]$/# $SANITIZED_NAME/" README.md > README.md.tmp && mv README.md.tmp README.md
+else
+  echo "Warning: README.md not found, skipping."
+fi
+
+echo "Done. SERVICE_NAME, pyproject.toml name, and README.md title set to: $SANITIZED_NAME"
 echo "Created/updated: .env, .env.local"
