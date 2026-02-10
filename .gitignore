@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+.env
+.env.dev
+.env.local
+.env.stage
+.env.prd
+
 # Distribution / packaging
 .Python
 build/
@@ -136,6 +142,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.local
 .envrc
 .venv
 env/

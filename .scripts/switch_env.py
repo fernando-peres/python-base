@@ -18,9 +18,9 @@ import shutil
 import sys
 from pathlib import Path
 
-# Add src to path to import project modules
+# Add project root to path so "service" package can be imported
 project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root / "src"))
+sys.path.insert(0, str(project_root))
 from service.shared.terminal_colors import ColorCode, coloring  # noqa: E402
 
 
