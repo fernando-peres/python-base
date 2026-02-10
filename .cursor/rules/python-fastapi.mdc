@@ -1,0 +1,260 @@
+---
+description: FastAPI backend architecture and DTO mapping rules
+globs: **/api/**/*.py,**/application/**/*.py,**/domain/**/*.py
+alwaysApply: false
+---
+
+# FastAPI Backend Architecture Rules
+
+## Core Principles
+
+**Clean Architecture**: Strict separation of concerns across HTTP, Application, and Domain layers.
+
+**Dependency Flow**: Endpoints → Use Cases → Repositories. Dependencies injected via container, never via `Depends()`.
+
+**DTO Isolation**: All data transfer objects live in `application/dtos/`. Domain entities never exposed to HTTP layer.
+
+
+## Three-Layer DTO Separation
+
+### 1. HTTP Layer (requests.py, responses.py)
+**Purpose**: Handle HTTP-specific validation and serialization
+```python
+# application/dtos/requests.py
+from pydantic import BaseModel, EmailStr, Query
+
+class CreateUserRequest(BaseModel):
+    """HTTP request validation"""
+    email: EmailStr  # HTTP-level validation
+    name: str
+    
+class ListUsersRequest(BaseModel):
+    """Query parameters"""
+    limit: int = Query(20, ge=1, le=100)
+    offset: int = Query(0, ge=0)
+
+# application/dtos/responses.py
+class UserResponse(BaseModel):
+    """HTTP response serialization"""
+    id: UUID
+    email: str
+    name: str
+    created_at: datetime
+```
+
+### 2. Application Layer (commands_queries.py and results.py)
+**Purpose**: Pure business data for use case input/output. 
+No HTTP concerns.
+
+```python
+# application/dtos/commands_queries.py
+
+# Commands (write operations - CQRS inspired)
+class CreateUserCommand(BaseModel):
+    """Use case input - no HTTP validation"""
+    email: str
+    name: str
+
+class UpdateUserCommand(BaseModel):
+    user_id: UUID
+    name: str | None = None
+
+# Queries (read operations - CQRS inspired)
+class GetUserQuery(BaseModel):
+    user_id: UUID
+
+class ListUsersQuery(BaseModel):
+    limit: int = 20
+    offset: int = 0
+
+# DTOs (use case output)
+class GetUserResult(BaseModel):
+    """Use case output - business data only"""
+    id: UUID
+    email: str
+    name: str
+    created_at: datetime
+
+```
+
+### 3. Domain Layer (entities/)
+**Purpose**: Business entities with rules and invariants. Never exposed via API.
+```python
+# domain/entities/user.py
+class User:
+    """Domain entity - internal only"""
+    def __init__(self, id: UUID, email: str, name: str):
+        self.id = id
+        self.email = email
+        self.name = name
+        self._validate()
+    
+    def _validate(self):
+        """Business invariants"""
+        if not self.email:
+            raise ValueError("Email required")
+```
+
+## Data Flow Pattern
+
+### Complete Request Flow
+```
+1. HTTP Request (CreateUserRequest)
+   ↓
+2. Map to Command (CreateUserCommand) or Query (GetUserQuery)
+   ↓
+3. Use Case executes with Command or Query
+   ↓
+4. Returns Use case Result DTO (GetUserResult)
+   ↓
+5. Map result to HTTP Response (UserResponse)
+```
+
+### Endpoint Implementation
+```python
+# api/v1/users/routes.py
+from fastapi import APIRouter, Request, HTTPException
+from application.dtos.requests import CreateUserRequest
+from application.dtos.responses import UserResponse
+from application.dtos.commands_queries import CreateUserCommand
+from domain.use_cases.users import CreateUserUseCase
+
+router = APIRouter(prefix="/users", tags=["users"])
+
+@router.post("", response_model=UserResponse, status_code=201)
+async def create_user(payload: CreateUserRequest):
+    """
+    Endpoint responsibility:
+    1. Receive HTTP request
+    2. Map to command/query
+    3. Execute use case
+    4. Map result to HTTP response
+    5. Handle exceptions → HTTP errors
+    """
+    container = request.app.state.container
+    
+    # Step 1: Map HTTP → Command
+    command = CreateUserCommand(
+        email=payload.email,
+        name=payload.name
+    )
+    
+    # Step 2: Execute use case
+    use_case = CreateUserUseCase()
+    try:
+        user_dto = await use_case.execute(command)
+    except DomainValidationError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except EntityNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    
+    # Step 3: Map DTO → HTTP Response
+    return UserResponse(
+        id=user_dto.id,
+        email=user_dto.email,
+        name=user_dto.name,
+        created_at=user_dto.created_at
+    )
+```
+
+# main.py
+def create_app() -> FastAPI:
+    app = FastAPI()
+    
+    db = Database(settings.DATABASE_URL)
+    container = Container(db)
+    app.state.container = container
+    
+    return app
+```
+
+### Accessing Container in Endpoints
+```python
+# ✅ CORRECT - Get from app state
+@router.post("/users")
+async def create_user(payload: CreateUserRequest, request: Request):
+    container = request.app.state.container
+    use_case = CreateUserUseCase(container.user_repository())
+    # ...
+
+# ❌ WRONG - Don't use Depends()
+@router.post("/users")
+async def create_user(
+    payload: CreateUserRequest,
+    use_case: CreateUserUseCase = Depends(get_use_case)  # NO!
+):
+```
+
+## Naming Conventions
+
+### Parameter Names
+```python
+# Generic operations
+async def create_user(payload: CreateUserRequest): ...
+
+# Authentication
+async def login(credentials: LoginRequest): ...
+
+# Updates/patches
+async def update_user(updates: UpdateUserRequest): ...
+
+# Filters/queries
+async def list_users(filters: ListUsersRequest): ...
+```
+
+### HTTP Methods & Status Codes
+```python
+@router.post("/users", status_code=201)       # Create
+@router.get("/users/{id}")                    # Read single
+@router.get("/users")                         # Read list
+@router.patch("/users/{id}")                  # Partial update
+@router.put("/users/{id}")                    # Full replacement (rare)
+@router.delete("/users/{id}", status_code=204) # Delete
+```
+
+## Quick Reference
+
+### ✅ DO
+- Keep all DTOs in `application/dtos/` (requests.py, responses.py, commands_queries.py)
+- Map HTTP requests → commands/queries before use case execution
+- Map use case DTOs → HTTP responses after execution
+- Instantiate use cases in endpoints with repositories from container
+- Use semantic parameter names (`payload`, `credentials`, `filters`, `updates`)
+- Always specify `response_model` and status codes
+- Handle domain exceptions → map to HTTP errors in endpoints
+
+### ❌ DON'T
+- Use `Depends()` for use cases or repositories
+- Mix HTTP concerns (validation, query params) with commands/queries
+- Return domain entities directly from endpoints
+- Put business logic in route handlers
+- Import infrastructure (database, repositories) in route files
+- Pass repositories through endpoint parameters
+
+### Example Anti-Pattern
+```python
+# ❌ WRONG - Everything wrong in one endpoint
+@router.post("/users")
+async def create_user(
+    email: str,  # Should be in Request model
+    name: str,
+    repo: UserRepository = Depends(get_repo)  # Don't inject repos
+):
+    user = User(email=email, name=name)  # Business logic in endpoint
+    saved = await repo.save(user)
+    return saved  # Returning domain entity directly
+```
+
+### Correct Pattern
+```python
+# ✅ CORRECT - Clean separation
+@router.post("/users", response_model=UserResponse, status_code=201)
+async def create_user(payload: CreateUserRequest, request: Request):
+    container = request.app.state.container
+    command = CreateUserCommand(**payload.model_dump())
+    use_case = CreateUserUseCase(container.user_repository())
+    user_dto = await use_case.execute(command)
+    return UserResponse(**user_dto.model_dump())
+```
+
+This architecture ensures testability, maintainability, and complete independence between HTTP, Application, and Domain layers.

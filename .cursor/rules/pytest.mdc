@@ -1,0 +1,187 @@
+---
+description: Pytest testing standards and best practices
+globs: tests/**/*.py
+alwaysApply: false
+---
+
+# Pytest Standards
+
+
+## Usage
+```bash
+# Reset database before running tests
+pytest --reset-db
+
+# Reset database before running specific tests
+pytest tests/integration/repositories/ --reset-db
+
+# Reset database using standalone script
+python scripts/reset_test_db.py
+uv run python scripts/reset_test_db.py
+```
+
+## Test Structure
+
+### File Organization
+```
+tests/
+├── unit/              # Fast, isolated tests
+│   ├── domain/
+│   └── services/
+├── integration/       # Database, API tests
+│   └── api/
+└── conftest.py        # Shared fixtures
+```
+
+### Naming Convention
+```python
+# File: test_<module>.py
+# Function: test_<what>_<condition>_<expected>
+
+def test_create_user_with_valid_data_returns_user():
+    ...
+
+def test_get_user_when_not_found_raises_error():
+    ...
+```
+
+---
+
+## Test Pattern (AAA)
+```python
+@pytest.mark.asyncio
+async def test_create_user_saves_to_database(user_repository):
+    # Arrange
+    user_data = {"email": "test@example.com", "username": "testuser"}
+    
+    # Act
+    user = await user_repository.create(user_data)
+    
+    # Assert
+    assert user.id is not None
+    assert user.email == "test@example.com"
+```
+
+---
+
+## Fixtures
+
+### Use conftest.py for Shared Fixtures
+```python
+# tests/conftest.py
+import pytest
+from httpx import AsyncClient
+
+@pytest.fixture
+async def client() -> AsyncClient:
+    """Provide test HTTP client."""
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+
+@pytest.fixture
+async def db_session() -> AsyncSession:
+    """Provide clean database session for each test."""
+    async with async_session_maker() as session:
+        yield session
+        await session.rollback()
+```
+
+### Fixture Scope
+```python
+@pytest.fixture(scope="session")  # Once per test session
+@pytest.fixture(scope="module")   # Once per test file
+@pytest.fixture(scope="function") # Default: once per test
+```
+
+---
+
+## Markers
+```python
+# Mark async tests
+@pytest.mark.asyncio
+async def test_async_function():
+    ...
+
+# Mark slow tests
+@pytest.mark.slow
+def test_slow_operation():
+    ...
+
+# Skip tests conditionally
+@pytest.mark.skipif(condition, reason="...")
+def test_something():
+    ...
+
+# Parametrize tests
+@pytest.mark.parametrize("input,expected", [
+    ("valid@email.com", True),
+    ("invalid", False),
+])
+def test_email_validation(input, expected):
+    assert validate_email(input) == expected
+```
+
+### Register markers in pyproject.toml
+```toml
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow",
+    "integration: marks tests as integration tests",
+]
+```
+
+---
+
+## Assertions
+```python
+# Use plain assert
+assert result == expected
+assert user.email == "test@example.com"
+assert len(users) == 5
+
+# Check exceptions
+with pytest.raises(ValueError, match="Invalid email"):
+    validate_email("invalid")
+
+# Check None/truthiness
+assert result is not None
+assert user.is_active
+```
+
+---
+
+## Quick Tips
+
+✅ **Do:**
+- Keep tests independent (no shared state)
+- Use descriptive test names
+- One logical assertion per test
+- Use fixtures for setup/teardown
+- Test both success and error cases
+
+❌ **Don't:**
+- Use `assert True` or meaningless assertions
+- Test implementation details (test behavior)
+- Create test dependencies (test order shouldn't matter)
+- Use `sleep()` (use proper async/await or mocking)
+
+---
+
+## Running Tests
+```bash
+# Run all tests
+pytest
+
+# Run specific file
+pytest tests/unit/test_users.py
+
+# Run with coverage
+pytest --cov=src --cov-report=html
+
+# Run with markers
+pytest -m "not slow"      # Exclude slow tests
+pytest -m integration     # Only integration tests
+
+# Parallel execution
+pytest -n auto           # Use all CPU cores
+```

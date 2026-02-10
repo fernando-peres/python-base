@@ -1,0 +1,28 @@
+---
+description: Python/uv project structure and workflow
+globs: src/**/*.py
+alwaysApply: false
+---
+
+# Python/uv Project Structure
+
+This project uses `uv` as the Python package manager.
+
+## Project Structure
+
+- **Python project root**: Project root directory (where `pyproject.toml` is located)
+- **Python source code**: Located in `src/` directory
+- **Configuration**: `pyproject.toml` and `uv.lock` are in the project root
+
+## Running Python Code
+
+When running Python code in this project:
+
+1. **Navigate to the project root**: Change directory to the project root (where `pyproject.toml` is located)
+2. **Choose one of these methods**:
+   - **Option 1**: Activate the virtual environment with `source .venv/bin/activate`, then run Python files normally
+   - **Option 2**: Use `uv run` directly (recommended): `uv run [path/to/pythonfile]`
+     - Example: `uv run src/main.py`
+     - Example: `uv run src/service/application/usecase/create.py`
+
+The `uv run` command automatically uses the project's virtual environment and dependencies, so explicit activation is not required.

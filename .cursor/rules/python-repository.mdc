@@ -1,0 +1,117 @@
+---
+description: Repository implementation patterns and standards
+globs: **/repositories/**/*.py,**/repository/**/*.py
+alwaysApply: false
+---
+
+## Repository Implementation Rules
+
+All repository methods MUST follow the try-except-finally pattern for proper resource management and error handling.
+
+### Core Requirements
+
+1. **Session Injection**: Inject database session directly in the method body using `inject_session(tenant_id=tenant_id)`. NEVER use `Depends()` - this creates spaghetti code with cascading parameter dependencies through method calls.
+
+2. **Resource Cleanup**: Always close the session in the `finally` block to prevent connection leaks.
+
+3. **Error Handling**: Log errors with context before re-raising as domain exceptions.
+
+4. **Entity Mapping**: Map database rows to domain entities - never return raw database results.
+
+5. **Type Casting**: Always cast `session.execute()` results to `CursorResult[Any]` for proper type safety.
+
+### Standard Method Template
+```python
+from typing import Any, cast
+from sqlalchemy.engine import CursorResult
+
+async def find_all(self, tenant_id: str, limit: int = 100, offset: int = 0) -> List[User]:
+    """Repository method following standard pattern."""
+    session = None  # Initialize before try
+    try:
+        # 1. Inject dependencies
+        logger = inject(ResourceName.LOGGER)
+        session = inject_session(tenant_id=tenant_id)
+        
+        # 2. Execute query
+        sql = '''
+            SELECT id, email, name, created_at
+            FROM users
+            WHERE tenant_id = :tenant_id
+            LIMIT :limit OFFSET :offset
+        '''
+        result = cast(CursorResult[Any], await session.execute(sql, {
+            "tenant_id": tenant_id,
+            "limit": limit,
+            "offset": offset
+        }))
+        
+        # 3. Map rows to domain entities
+        return [
+            User(
+                id=UUID(row.id),
+                email=row.email,
+                name=row.name,
+                created_at=row.created_at
+            )
+            for row in result.fetchall()
+        ]
+        
+    except Exception as e:
+        logger.error(f"Error finding users for tenant {tenant_id}: {e}", exc_info=True)
+        raise RepositoryError(f"Failed to find users: {str(e)}") from e
+    finally:
+        if session:
+            await session.close()
+```
+
+### Write Operations (INSERT/UPDATE/DELETE)
+
+Add commit/rollback for transactional operations:
+```python
+from typing import Any, cast
+from sqlalchemy.engine import CursorResult
+
+async def save(self, user: User, tenant_id: str) -> User:
+    session = None
+    try:
+        logger = inject(ResourceName.LOGGER)
+        session = inject_session(tenant_id=tenant_id)
+        
+        sql = '''INSERT INTO users (id, email, name, tenant_id) VALUES (:id, :email, :name, :tenant_id)'''
+        cast(CursorResult[Any], await session.execute(sql, {"id": str(user.id), "email": user.email, "name": user.name, "tenant_id": tenant_id}))
+        await session.commit()  # Commit transaction
+        
+        return user
+        
+    except Exception as e:
+        if session:
+            await session.rollback()  # Rollback on error
+        logger.error(f"Error saving user {user.id}: {e}", exc_info=True)
+        raise RepositoryError(f"Failed to save user: {str(e)}") from e
+    finally:
+        if session:
+            await session.close()
+```
+
+### Quick Checklist
+
+**Every repository method:**
+- ✅ Initialize `session = None` before try block
+- ✅ Inject logger: `inject(ResourceName.LOGGER)`
+- ✅ Inject session: `inject_session(tenant_id=tenant_id)`
+- ✅ Execute SQL queries (raw SQL or query builder)
+- ✅ Cast execute results: `cast(CursorResult[Any], session.execute(...))`
+- ✅ Map results to domain entities (never return raw rows)
+- ✅ Log errors with context: `logger.error(f"Context: {e}", exc_info=True)`
+- ✅ Raise domain exceptions: `raise RepositoryError(...) from e`
+- ✅ Commit writes: `await session.commit()`
+- ✅ Rollback on write failures: `await session.rollback()`
+- ✅ Close session in finally: `await session.close()`
+
+**Never:**
+- ❌ Use `Depends()` for session parameters
+- ❌ Return raw database rows or ORM models
+- ❌ Skip the finally block
+- ❌ Forget to close sessions
+- ❌ Forget commit/rollback for write operations

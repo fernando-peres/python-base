@@ -1,0 +1,203 @@
+---
+description: DTO naming conventions for usecases, gateways, and interfaces
+globs: **/application/**/*.py,**/infrastructure/gateway/**/*.py,**/api/**/*.py,**/interfaces/**/*.py
+alwaysApply: true
+---
+
+# DTO Naming Conventions
+
+## Overview
+
+Data Transfer Objects (DTOs) MUST follow specific naming conventions based on their usage context. This ensures consistency and clarity across the codebase.
+
+## Naming Rules
+
+### Use Case DTOs
+
+DTOs used by **use cases** in `application/usecase/` MUST follow these patterns:
+
+- **Input DTOs**: Must end with `*Command`
+- **Output DTOs**: Must end with `*Result`
+
+**Examples:**
+```python
+# application/dto/prediction.py
+class CreatePredictionCommand(BaseModel):
+    """Input for CreatePredictionUseCase"""
+    title: str
+    description: str
+
+class CreatePredictionResult(BaseModel):
+    """Output from CreatePredictionUseCase"""
+    id: str
+    title: str
+    created_at: datetime
+```
+
+**Use Case Method Signature:**
+```python
+# application/usecase/create.py
+class CreatePredictionUseCase:
+    def execute(self, command: CreatePredictionCommand) -> CreatePredictionResult:
+        ...
+```
+
+### Gateway DTOs
+
+DTOs used by **gateways** in `infrastructure/gateway/` MUST follow these patterns:
+
+- **Input DTOs**: Must end with `*Request`
+- **Output DTOs**: Must end with `*Response`
+
+**Examples:**
+```python
+# application/dto/truth_social.py
+class GetTokenTruthSocialRequest(BaseModel):
+    """Input for TruthSocialGateway.get_token()"""
+    username: str
+    password: str
+    scope: str | None = None
+
+class GetTokenTruthSocialResponse(BaseModel):
+    """Output from TruthSocialGateway.get_token()"""
+    access_token: str
+    token_type: str
+    scope: str | None
+    created_at: int
+```
+
+**Gateway Method Signature:**
+```python
+# infrastructure/gateway/truth_social.py
+class TruthSocialGateway:
+    def get_token(
+        self,
+        request: GetTokenTruthSocialRequest,
+        verbose: bool = False,
+    ) -> GetTokenTruthSocialResponse:
+        ...
+```
+
+### Interface/Endpoint DTOs
+
+DTOs used by **interfaces/endpoints** (HTTP API routes) in `api/` or `interfaces/` MUST follow these patterns:
+
+- **Input DTOs**: Must end with `*Request`
+- **Output DTOs**: Must end with `*Response`
+
+**Examples:**
+```python
+# application/dto/user.py
+class CreateUserRequest(BaseModel):
+    """Input for POST /api/v1/users endpoint"""
+    email: EmailStr
+    name: str
+
+class CreateUserResponse(BaseModel):
+    """Output from POST /api/v1/users endpoint"""
+    id: UUID
+    email: str
+    name: str
+    created_at: datetime
+```
+
+**Endpoint Method Signature:**
+```python
+# api/v1/users/routes.py
+from fastapi import APIRouter
+from application.dto.user import CreateUserRequest, CreateUserResponse
+
+router = APIRouter(prefix="/users", tags=["users"])
+
+@router.post("", response_model=CreateUserResponse, status_code=201)
+async def create_user(payload: CreateUserRequest) -> CreateUserResponse:
+    ...
+```
+
+## Quick Reference
+
+### Use Case DTOs
+- Input: `*Command` (e.g., `CreatePredictionCommand`, `UpdateUserCommand`)
+- Output: `*Result` (e.g., `CreatePredictionResult`, `GetUserResult`)
+
+### Gateway DTOs
+- Input: `*Request` (e.g., `GetTokenTruthSocialRequest`, `RegisterTruthSocialAppRequest`)
+- Output: `*Response` (e.g., `GetTokenTruthSocialResponse`, `RegisterTruthSocialAppResponse`)
+
+### Interface/Endpoint DTOs
+- Input: `*Request` (e.g., `CreateUserRequest`, `UpdateUserRequest`)
+- Output: `*Response` (e.g., `CreateUserResponse`, `GetUserResponse`)
+
+## Anti-Patterns
+
+### Wrong: Use Case DTOs Using Gateway Naming
+```python
+# ❌ WRONG - Using Request/Response for use case DTOs
+class CreatePredictionRequest(BaseModel):  # Should be Command
+    ...
+
+class CreatePredictionResponse(BaseModel):  # Should be Result
+    ...
+```
+
+### Wrong: Gateway/Interface DTOs Using Use Case Naming
+```python
+# ❌ WRONG - Using Command/Result for gateway/interface DTOs
+class GetTokenTruthSocialCommand(BaseModel):  # Should be Request
+    ...
+
+class GetTokenTruthSocialResult(BaseModel):  # Should be Response
+    ...
+
+# ❌ WRONG - Using Command/Result for endpoint DTOs
+class CreateUserCommand(BaseModel):  # Should be Request (for endpoint)
+    ...
+
+class CreateUserResult(BaseModel):  # Should be Response (for endpoint)
+    ...
+```
+
+### Wrong: Mixed Naming
+```python
+# ❌ WRONG - Mixing naming conventions
+class CreatePredictionCommand(BaseModel):  # Correct
+    ...
+
+class CreatePredictionResponse(BaseModel):  # Wrong - should be Result
+    ...
+```
+
+## DTO Location
+
+DTOs are typically stored in `application/dto/` and can be used by both use cases and gateways. The naming convention is determined by **where the DTO is used**, not where it is stored.
+
+**Example Structure:**
+```
+src/service/
+├── application/
+│   ├── dto/
+│   │   ├── prediction.py          # Use case DTOs (*Command, *Result)
+│   │   ├── user.py                # Interface/Endpoint DTOs (*Request, *Response)
+│   │   └── truth_social.py        # Gateway DTOs (*Request, *Response)
+│   └── usecase/
+│       └── create.py              # Uses *Command and *Result
+├── api/
+│   └── v1/
+│       └── users/
+│           └── routes.py          # Uses *Request and *Response
+└── infrastructure/
+    └── gateway/
+        └── truth_social.py        # Uses *Request and *Response
+```
+
+## Summary
+
+- **Use Cases**: `*Command` → `*Result`
+- **Gateways**: `*Request` → `*Response`
+- **Interfaces/Endpoints**: `*Request` → `*Response`
+
+Always use the appropriate suffix based on where the DTO is used:
+- Use cases → `*Command` / `*Result`
+- Gateways or Interfaces/Endpoints → `*Request` / `*Response`
+
+The naming convention is determined by **where the DTO is used**, not where it is stored.

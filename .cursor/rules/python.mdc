@@ -1,0 +1,357 @@
+---
+description: Python coding standards and best practices
+globs: **/*.py
+alwaysApply: false
+---
+
+# Python Rules for AI Agents
+
+## Overview
+
+This project enforces strict coding standards via ruff (linting/formatting), mypy (type checking), and pytest (testing). All code MUST pass these checks.
+
+## Package Management
+
+**Use UV for dependency management** - See `.cursor/rules/python-uv.mdc` for detailed instructions.
+- Never suggest `pip install` or `requirements.txt`
+
+## Formatting Rules (ruff format)
+
+- **Line length**: 98 characters max (STRICTLY ENFORCED - E501 error)
+- **Python version**: 3.13 (use modern syntax)
+- **Quotes**: Double quotes only
+- **Indentation**: 4 spaces (no tabs)
+- **Trailing commas**: Keep them in multi-line structures
+
+### Line Length Enforcement
+
+**CRITICAL**: All lines MUST be ≤ 98 characters. When writing code, proactively break long lines.
+
+**Common patterns for breaking long lines:**
+
+```python
+# ❌ BAD: Line exceeds 98 characters
+logger.error(f"Event {request.id} does not exist. Please create the event first or verify the event ID is correct.")
+
+# ✅ GOOD: Break into multiple string literals
+logger.error(
+    f"Event {request.id} does not exist. "
+    "Please create the event first or verify the event ID is correct."
+)
+
+# ❌ BAD: Long function call
+response = requests.put(url, headers=headers, files=files, timeout=30, allow_redirects=True)
+
+# ✅ GOOD: Break function arguments across lines
+response = requests.put(
+    url,
+    headers=headers,
+    files=files,
+    timeout=30,
+    allow_redirects=True,
+)
+
+# ❌ BAD: Long comment
+# curl --location --request PUT 'https://dev.truthsocial.com/api/v1/admin/predictions/events/123456789011213' \
+
+# ✅ GOOD: Break comment across lines
+# Example curl command:
+# curl --location --request PUT \
+#   'https://dev.truthsocial.com/api/v1/admin/predictions/events/123456789011213' \
+
+# ❌ BAD: Long string in prompt template
+- Write the prompt by using the selected symbol and the gradient background and the context of category as reference.
+
+# ✅ GOOD: Shorten or break the string
+- Write the prompt using the selected symbol, gradient background, and category context.
+```
+
+**When writing code, always:**
+1. Check line length mentally before writing
+2. Break long strings into multiple literals (Python automatically concatenates adjacent strings)
+3. Break function calls/definitions across multiple lines
+4. Shorten variable names or expressions if needed
+5. Use parentheses for implicit line continuation
+
+```python
+# GOOD: Modern Python 3.13
+def get_resource[T](resource_id: int) -> T | None:
+    ...
+
+def find_user(id: int | str) -> User | None:
+    ...
+
+# BAD: Old syntax
+from typing import Optional, Union
+def find_user(id: Union[int, str]) -> Optional[User]:
+    ...
+```
+
+## Ruff Linting Rules
+
+Enabled categories: **E, F** (PEP 8/undefined names), **B** (bugbear), **I** (isort), **UP** (pyupgrade), **SIM** (simplify), **C90** (complexity).
+
+### Key Rules
+
+**E, F (PEP 8/Pyflakes):**
+- No undefined names or unused imports/variables
+- Proper whitespace around operators
+- Prefix unused variables with `_`
+
+**B (Bugbear):**
+- No mutable default arguments → use `None` as default
+- No bare `except:` → catch specific exceptions
+- No `assert` for validation → use proper error handling
+
+```python
+# BAD: Mutable default (B006)
+def add_item(items=[]):
+    items.append("new")
+    return items
+
+# GOOD: Use None
+def add_item(items: list[str] | None = None) -> list[str]:
+    if items is None:
+        items = []
+    items.append("new")
+    return items
+```
+
+**I (isort):** Import order: stdlib → third-party → first-party
+
+**UP (pyupgrade):** Use modern syntax (`list[str]` not `List[str]`, f-strings, `|` unions)
+
+**SIM (simplify):** Remove redundant conditions, unnecessary else blocks
+
+**C90 (complexity):** Keep functions simple, break complex ones down
+
+### Complexity Management (C901)
+
+**CRITICAL**: Functions MUST have complexity ≤ 10. If complexity exceeds 10, refactor immediately.
+
+**Complexity is measured by:**
+- Number of decision points (if/elif/else, for/while loops, try/except)
+- Nested control structures
+- Boolean operators in conditions
+
+**Refactoring strategies:**
+
+```python
+# ❌ BAD: Complex function (complexity > 10)
+def upload_event_thumbnail_image(self, access_token: str, request: Request) -> Response:
+    logger = inject(ResourceName.LOGGER)
+    url = f"{self.base_url}/api/v1/admin/predictions/events/{request.id}"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    
+    try:
+        file_ext = os.path.splitext(request.filename)[1].lower()
+        content_type_map = {".png": "image/png", ".jpg": "image/jpeg"}
+        content_type = content_type_map.get(file_ext, "image/png")
+        files = {"thumbnail": (request.filename, request.thumbnail, content_type)}
+        response = requests.put(url, headers=headers, files=files, timeout=30)
+        
+        if not response.ok:
+            try:
+                error_body = response.json()
+                logger.error(f"Error: {error_body}")
+                if response.status_code == 422:
+                    if isinstance(error_body, dict):
+                        error_message = error_body.get("error_message", "")
+                        if "Event must exist" in error_message:
+                            logger.error(f"Event {request.id} does not exist")
+                elif response.status_code == 403:
+                    logger.error("403 Forbidden")
+            except ValueError:
+                logger.error(f"Non-JSON response: {response.text[:500]}")
+            response.raise_for_status()
+        
+        response_data = response.json()
+        if not response_data:
+            response_data = {"id": request.id, "status": "success"}
+        elif "id" not in response_data:
+            response_data["id"] = request.id
+        return UploadEventThumbnailImageResponse(**response_data)
+    except requests.exceptions.HTTPError as e:
+        # ... complex error handling ...
+    except requests.exceptions.JSONDecodeError as e:
+        # ... more error handling ...
+
+# ✅ GOOD: Refactored with helper methods
+def _get_content_type(self, filename: str) -> str:
+    """Determine content type from file extension."""
+    file_ext = os.path.splitext(filename)[1].lower()
+    content_type_map = {".png": "image/png", ".jpg": "image/jpeg"}
+    return content_type_map.get(file_ext, "image/png")
+
+def _handle_http_error(self, e: requests.exceptions.HTTPError, request: Request) -> None:
+    """Handle HTTP errors with detailed logging."""
+    logger = inject(ResourceName.LOGGER)
+    # ... error handling logic ...
+
+def _normalize_response_data(self, response_data: dict | None, request: Request) -> dict:
+    """Normalize response data, ensuring id field is present."""
+    if not response_data:
+        return {"id": request.id, "status": "success"}
+    if "id" not in response_data:
+        response_data["id"] = request.id
+    return response_data
+
+def upload_event_thumbnail_image(self, access_token: str, request: Request) -> Response:
+    """Upload an event thumbnail image."""
+    logger = inject(ResourceName.LOGGER)
+    url = f"{self.base_url}/api/v1/admin/predictions/events/{request.id}"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    
+    try:
+        content_type = self._get_content_type(request.filename)
+        files = {"thumbnail": (request.filename, request.thumbnail, content_type)}
+        response = requests.put(url, headers=headers, files=files, timeout=30)
+        
+        if not response.ok:
+            self._handle_response_error(response, request)
+            response.raise_for_status()
+        
+        response_data = response.json()
+        normalized_data = self._normalize_response_data(response_data, request)
+        return UploadEventThumbnailImageResponse(**normalized_data)
+    except requests.exceptions.HTTPError as e:
+        self._handle_http_error(e, request)
+    except requests.exceptions.JSONDecodeError as e:
+        self._handle_json_error(e, response)
+```
+
+**When writing code, always:**
+1. Keep functions focused on a single responsibility
+2. Extract helper methods for:
+   - Complex error handling logic
+   - Data transformation/normalization
+   - Repeated patterns
+   - Validation logic
+3. Use early returns to reduce nesting
+4. Break down complex conditionals into separate methods
+5. If complexity approaches 8-9, proactively refactor before it exceeds 10
+
+### Critical Import Rule
+
+**DO NOT include `src` in import paths** - `src` is the root:
+
+```python
+# BAD
+from src.service.interfaces.rest_v1 import health
+
+# GOOD
+from service.interfaces.rest_v1 import health
+```
+
+## Mypy Type Checking (Strict Mode)
+
+**All functions MUST have complete type annotations.**
+
+### Requirements
+
+1. **All functions need parameter + return types:**
+```python
+# BAD
+def process_data(data, count):
+    return [x * 2 for x in data[:count]]
+
+# GOOD
+def process_data(data: list[int], count: int) -> list[int]:
+    return [x * 2 for x in data[:count]]
+```
+
+2. **Functions without returns MUST use `-> None`:**
+```python
+def log_message(message: str) -> None:
+    print(message)
+```
+
+3. **Generic types MUST specify parameters:**
+```python
+# BAD
+def get_data() -> dict:
+    return {"key": "value"}
+
+# GOOD
+def get_data() -> dict[str, str]:
+    return {"key": "value"}
+```
+
+4. **Handle None values before operations:**
+```python
+# BAD
+def get_length(items: list[str] | None) -> int:
+    return len(items)  # Error: items might be None
+
+# GOOD
+def get_length(items: list[str] | None) -> int:
+    return len(items) if items is not None else 0
+```
+
+### Common Mypy Errors
+
+- **"Function is missing a return type annotation"** → Add `-> ReturnType`
+- **"Missing type parameters for generic type"** → Use `dict[str, Any]` not `dict`
+- **"Unsupported operand types"** → Check for `None` before comparisons
+- **"Call to untyped function"** → Ensure all functions have types
+
+## Modern Python 3.13 Features
+
+- **Type parameters**: `def get[T](id: int) -> T | None:`
+- **Unions**: `int | str` not `Union[int, str]`
+- **Type aliases**: `type UserID = int`
+- **F-strings**: Always use f-strings for formatting
+
+## Code Quality
+
+- **Low complexity**: Break complex functions into smaller ones
+- **Early returns**: Prefer over nested if-else
+- **Simplification**: Use `.get()` instead of `if key in dict`
+- **No mutable defaults**: Use `None` pattern
+- **Specific exceptions**: Catch `ValueError`, not bare `except:`
+
+## Agent Checklist
+
+### Before Writing Code
+- [ ] Check existing patterns
+- [ ] Identify if tests needed
+
+### While Writing Code
+- [ ] Python 3.13 syntax (`|` unions, type parameters)
+- [ ] Complete type annotations (params + return, including `-> None`)
+- [ ] Generic types with parameters (`dict[str, Any]` not `dict`)
+- [ ] Double quotes, 98 char lines, trailing commas
+- [ ] Import order: stdlib → third-party → first-party
+- [ ] **NO `src` in import paths**
+- [ ] Handle `None` before operations
+- [ ] Low complexity (≤ 10), extract helper methods if needed
+- [ ] Early returns to reduce nesting
+
+### After Writing Code
+- [ ] Run `ruff check` mentally (all categories)
+- [ ] Run `mypy` mentally (all functions typed)
+- [ ] Write tests if needed (see `.cursor/rules/pytest.mdc` for standards)
+- [ ] Test docstrings
+
+### Common Mistakes to Avoid
+
+1. Missing type annotations → Every function needs types
+2. Including `src` in imports → Omit `src`, it's the root
+3. Mutable default arguments → Use `None` as default
+4. Missing `-> None` → Functions without returns need it
+5. Unspecified generics → Use `dict[str, Any]` not `dict`
+6. Unhandled None → Check before operations
+7. Wrong import order → stdlib → third-party → first-party
+8. Single quotes → Use double quotes
+9. Long lines → Keep under 98 characters
+10. Untyped tests → Tests need types too
+11. Complex functions (> 10 complexity) → Extract helper methods
+12. Deeply nested conditionals → Use early returns or extract methods
+
+## Summary
+
+- **Ruff**: Formatting + linting (E, F, B, I, UP, SIM, C90)
+- **Mypy**: Strict type checking (all functions typed)
+- **Pytest**: See `.cursor/rules/pytest.mdc` for testing standards
+
+All code MUST pass these checks. Refer to `pyproject.toml` for exact configurations.
