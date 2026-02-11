@@ -2,17 +2,18 @@
 
 What is needed to turn this base into a clean project (no “Hello, World” or example code).
 
-## 1. Run set-service (first-time / new project)
+## 1. Run config (first-time / new project)
 
 When starting from this template, run:
 
 ```bash
-./.scripts/set-service.sh
+./.scripts/config.sh
 ```
 
 - Prompts for project name (alphanumeric, hyphens, underscores).
 - Creates/overwrites `.env` and `.env.local` from `.env.example`.
 - Sets `SERVICE_NAME` in env and `name` in `pyproject.toml`.
+- Removes itself after a successful run (one-time use).
 
 See [README.md – Setting the service name](README.md#setting-the-service-name-first-time-or-new-project).
 
@@ -31,6 +32,6 @@ See [README.md – Setting the service name](README.md#setting-the-service-name-
 
 ## Recommended read
 
-- **README.md** – run app, set-service, env setup, config.
+- **README.md** – run app, config, env setup, config.
 - **.readme/uv-env-setup.md** – installing `uv`, Python 3.13, dev vs prod.
 - **.readme/settings-in-code.md** – using settings (Pydantic) in code.

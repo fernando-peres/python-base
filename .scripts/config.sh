@@ -3,8 +3,11 @@ set -euo pipefail
 
 # Resolve repo root (parent of directory containing this script)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_PATH="$SCRIPT_DIR/$(basename "${BASH_SOURCE[0]}")"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+echo "This script will remove itself after running successfully."
+echo ""
 echo "Project name (alphanumeric, hyphens, underscores only):"
 read -r -p "Project name: " PROJECT_NAME
 
@@ -55,3 +58,4 @@ fi
 
 echo "Done. SERVICE_NAME, pyproject.toml name, and README.md title set to: $SANITIZED_NAME"
 echo "Created/updated: .env, .env.local"
+rm -f "$SCRIPT_PATH"

@@ -244,14 +244,18 @@ Utility scripts are located in `.scripts/`. Run them from the project root.
  
 | Script | Description |
 |---|---|
-| `set-service.sh` | Interactive setup: prompts for a project name, then updates `SERVICE_NAME` in `.env` / `.env.local` and the `name` field in `pyproject.toml` and `README.md`. |
+| `config.sh` | One-time setup: prompts for a project name, updates `SERVICE_NAME` in `.env` / `.env.local` and the `name` field in `pyproject.toml` and `README.md`. **Removes itself after a successful run.** |
 | `clean.sh` | Removes `.DS_Store`, `.pyc` files, and `__pycache__` directories from the repository. |
- 
+
+### 7.1 Setting the service name (first-time or new project)
+
+When starting from this template, run `bash .scripts/config.sh` once. It will prompt for a project name, create or update `.env` and `.env.local`, set the service name in `pyproject.toml` and `README.md`, then delete itself.
+
 **Examples:**
- 
+
 ```sh
-# Set the project/service name interactively
-bash .scripts/set-service.sh
+# Configure project name (script removes itself after running)
+bash .scripts/config.sh
  
 # Switch to the local environment
 python .scripts/switch_env.py --local
