@@ -10,6 +10,9 @@
     "editor.insertSpaces": true
   },
   "ruff.enable": true,
-  "ruff.format.args": [],
-  "ruff.organizeImports": true
+  "ruff.config": "${workspaceFolder}/pyproject.toml",
+  "ruff.format.args": ["--config", "pyproject.toml"],
+  "ruff.organizeImports": true,
+  "python.analysis.typeCheckingMode": "strict",
+  "mypy-type-checker.args": ["--config-file", "pyproject.toml"]
 }

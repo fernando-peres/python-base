@@ -3,5 +3,8 @@
         "tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "python.analysis.typeCheckingMode": "strict",
+    "ruff.config": "${workspaceFolder}/pyproject.toml",
+    "mypy-type-checker.args": ["--config-file", "pyproject.toml"]
 }

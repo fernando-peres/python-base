@@ -38,6 +38,7 @@ def print_fenced_message(message: str, detail: str = "") -> None:
         message: Main message to display
         detail: Optional detail message to display below the main message
     """
+
     # Calculate the width needed for the box (longest line + padding)
     # Account for emoji/wide characters that may take 2 display columns
     def get_display_width(text: str) -> int:
@@ -47,14 +48,18 @@ def print_fenced_message(message: str, detail: str = "") -> None:
             code = ord(char)
             # Emojis and wide Unicode characters take 2 display columns
             # Check for emoji ranges and other wide characters
-            if (0x1F300 <= code <= 0x1F9FF) or (0x1F600 <= code <= 0x1F64F) or \
-               (0x2700 <= code <= 0x27BF) or (0x1F900 <= code <= 0x1F9FF) or \
-               (code > 0x1F000 and code < 0x1FA00):
+            if (
+                (0x1F300 <= code <= 0x1F9FF)
+                or (0x1F600 <= code <= 0x1F64F)
+                or (0x2700 <= code <= 0x27BF)
+                or (0x1F900 <= code <= 0x1F9FF)
+                or (code > 0x1F000 and code < 0x1FA00)
+            ):
                 width += 2
             else:
                 width += 1
         return width
-    
+
     lines = [message]
     if detail:
         lines.append(detail)
@@ -94,7 +99,9 @@ def print_fenced_message(message: str, detail: str = "") -> None:
     colored_message = coloring(message, text_color)
     colored_spaces_left = space * left_pad
     colored_spaces_right = space * right_pad
-    print(f"{colored_border}{colored_spaces_left}{colored_message}{colored_spaces_right}{colored_border}")
+    print(
+        f"{colored_border}{colored_spaces_left}{colored_message}{colored_spaces_right}{colored_border}"
+    )
 
     # Print detail line if provided
     if detail:
@@ -107,7 +114,9 @@ def print_fenced_message(message: str, detail: str = "") -> None:
         colored_detail = coloring(detail, text_color)
         colored_spaces_left_detail = space * left_pad_detail
         colored_spaces_right_detail = space * right_pad_detail
-        print(f"{colored_border}{colored_spaces_left_detail}{colored_detail}{colored_spaces_right_detail}{colored_border}")
+        print(
+            f"{colored_border}{colored_spaces_left_detail}{colored_detail}{colored_spaces_right_detail}{colored_border}"
+        )
 
     # Print empty line for spacing
     print(coloring(empty_line, border_color))
@@ -144,7 +153,7 @@ def switch_environment(env_type: str) -> None:
         print()  # Add spacing before the fence
         print_fenced_message(
             f"✅ Successfully switched to {env_type} environment",
-            f"Copied {source_file.name} → .env"
+            f"Copied {source_file.name} → .env",
         )
         print()  # Add spacing after the fence
     except Exception as e:

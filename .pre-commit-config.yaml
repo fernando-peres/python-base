@@ -1,0 +1,31 @@
+repos:
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.14.3
+  hooks:
+    - id: ruff
+      name: Ruff lint check
+      args: ["--config=pyproject.toml"]
+    - id: ruff-format
+      name: Ruff formatter
+      args: ["--config=pyproject.toml"]
+      exclude: ^scripts/
+
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.18.2
+  hooks:
+    - id: mypy
+      name: Static type checker (mypy)
+      additional_dependencies:
+        - types-requests
+      args: ["--config-file=pyproject.toml"]
+      exclude: ^scripts/
+
+- repo: local
+  hooks:
+    - id: pytest
+      name: Run tests (pytest)
+      entry: bash -c 'source .venv/bin/activate && pytest tests/ -v --tb=short'
+      language: system
+      pass_filenames: false
+      always_run: true
+      stages: [manual]  # Only runs when explicitly called with --hook-stage manual

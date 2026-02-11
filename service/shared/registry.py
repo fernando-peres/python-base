@@ -19,9 +19,10 @@ class Registry:
 
     def __new__(cls) -> Self:
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
+            cls._instance = cast(Self, super().__new__(cls))  # type: ignore[redundant-cast]
             cls._initialized = True
-        return cast(Self, cls._instance)
+        assert cls._instance is not None
+        return cls._instance
 
     @classmethod
     def is_initialized(cls) -> bool:

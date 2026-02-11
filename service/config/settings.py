@@ -8,10 +8,12 @@ Example:
     from service.config import settings
     print(settings.environment)
 """
+
 import logging
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class ServiceSettings(BaseSettings):
     """

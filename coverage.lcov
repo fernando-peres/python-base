@@ -2,11 +2,11 @@ SF:service/main.py
 DA:6,1
 DA:7,1
 DA:8,1
-DA:23,1
-DA:25,0
+DA:22,1
+DA:24,0
 LF:5
 LH:4
-FN:23,25,sum_two_numbers
+FN:22,24,sum_two_numbers
 FNDA:0,sum_two_numbers
 FNF:1
 FNH:0

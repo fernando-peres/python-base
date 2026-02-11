@@ -7,7 +7,6 @@ from service.config.bootstrap import initialize_service_resources
 from service.config.vocabulary import ResourceName
 from service.shared.registry import inject
 
-
 if __name__ == "__main__":
     try:
         initialize_service_resources()
