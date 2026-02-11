@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = [".", "service", "appscheduler"]
+packages = [".", "service"]
 
 [build-system]
 requires = ["hatchling"]
@@ -63,7 +63,7 @@ exclude = [
     ".cursor",
     "static",
 ]
-src = [".", "service", "tests", "appscheduler"]
+src = [".", "service", "tests"]
 
 [tool.ruff.format]
 indent-style = "space"
@@ -72,7 +72,7 @@ skip-magic-trailing-comma = false
 
 
 [tool.ruff.lint]
-select = ["E", "F", "B", "I"]ß
+select = ["E", "F", "B", "I"]
 extend-select = [
     "UP",  # pyupgrade rules
     "SIM", # simplify rules
