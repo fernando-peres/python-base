@@ -20,8 +20,11 @@ This section helps you set up the Python environment and install pre-commit hook
 
 **Step 1:** Create a virtual environment:
 
+
 ```sh
 uv venv
+# or... since pyproject.toml already exists.
+uv sync --all-groups
 ```
 
 **Step 2:** Activate the virtual environment:
