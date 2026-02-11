@@ -1,7 +1,7 @@
 [project]
 name = "python-base"
 version = "0.1.0"
-description = "AI Service for Events Predictions"
+description = "Python Base Template"
 readme = "README.md"
 authors = [
     { name = "fernando-peres", email = "fernando.peres@icloud.com" }
@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = [".", "service"]
+packages = [".", "service", "appscheduler"]
 
 [build-system]
 requires = ["hatchling"]
@@ -63,7 +63,7 @@ exclude = [
     ".cursor",
     "static",
 ]
-src = [".", "service", "tests"]
+src = [".", "service", "tests", "appscheduler"]
 
 [tool.ruff.format]
 indent-style = "space"
@@ -72,7 +72,7 @@ skip-magic-trailing-comma = false
 
 
 [tool.ruff.lint]
-select = ["E", "F", "B", "I"]
+select = ["E", "F", "B", "I"]ß
 extend-select = [
     "UP",  # pyupgrade rules
     "SIM", # simplify rules
