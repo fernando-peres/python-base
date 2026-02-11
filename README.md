@@ -35,6 +35,8 @@ source .venv/bin/activate
 
 **Step 3:** Install dependencies (including development and optional groups):
 
+If you already executed `uv sync --all-groups` in step 1, you can skip this step.
+
 ```sh
 uv sync --all-groups
 ```
@@ -235,5 +237,31 @@ service/
 
 - **config/** – bootstrap, settings, vocabulary  
 - **shared/** – logger, registry, terminal colors, utilities  
+
+## 7. Scripts
+ 
+Utility scripts are located in `.scripts/`. Run them from the project root.
+ 
+| Script | Description |
+|---|---|
+| `set-service.sh` | Interactive setup: prompts for a project name, then updates `SERVICE_NAME` in `.env` / `.env.local` and the `name` field in `pyproject.toml` and `README.md`. |
+| `clean.sh` | Removes `.DS_Store`, `.pyc` files, and `__pycache__` directories from the repository. |
+ 
+**Examples:**
+ 
+```sh
+# Set the project/service name interactively
+bash .scripts/set-service.sh
+ 
+# Switch to the local environment
+python .scripts/switch_env.py --local
+# Other options: --dev, --stage, --prd
+ 
+# List all loggers in the codebase
+python .scripts/list_loggers.py
+ 
+# Clean build artefacts
+bash .scripts/clean.sh
+```
 
 For more on architecture and messaging, see `docs/architecture/` and `docs/readme/`.
