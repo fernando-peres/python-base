@@ -1,10 +1,6 @@
----
-description: Registry pattern, vocabulary (ResourceName), and bootstrap (initialize_service_resources)
-globs: "**/*.py"
-alwaysApply: false
----
-
 # Bootstrap and Registry
+
+Use this skill when you need to obtain logger, settings, or other registered resources, or when modifying the main entry point or tests that use the registry.
 
 ## Registry
 
@@ -20,13 +16,16 @@ settings = inject(ResourceName.SETTINGS)
 
 ## Vocabulary
 
-Resource names are defined in `service.config.vocabulary.ResourceName` (StrEnum). To add a new resource type, add a member to `ResourceName` and register it in `service.config.bootstrap.initialize_service_resources()`.
+Resource names are defined in `service.config.vocabulary.ResourceName` (StrEnum). To add a new resource type:
+
+1. Add a member to `ResourceName`.
+2. Register it in `service.config.bootstrap.initialize_service_resources()`.
 
 ## Bootstrap
 
 When writing or modifying the main entry point or tests that use `inject(...)`, ensure `initialize_service_resources()` is called at startup so the registry is populated.
 
-**Correct — main entry point:**
+**Main entry point:**
 
 ```python
 from service.config.bootstrap import initialize_service_resources

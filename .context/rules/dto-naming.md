@@ -1,9 +1,3 @@
----
-description: DTO naming conventions for usecases, gateways, and interfaces
-globs: **/application/**/*.py,**/infrastructure/gateway/**/*.py,**/api/**/*.py,**/interfaces/**/*.py
-alwaysApply: true
----
-
 # DTO Naming Conventions
 
 ## Overview

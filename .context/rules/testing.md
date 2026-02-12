@@ -1,13 +1,7 @@
----
-description: Pytest testing standards and best practices
-globs: tests/**/*.py
-alwaysApply: false
----
-
 # Pytest Standards
 
-
 ## Usage
+
 ```bash
 # Reset database before running tests
 pytest --reset-db
@@ -23,6 +17,7 @@ uv run python scripts/reset_test_db.py
 ## Test Structure
 
 ### File Organization
+
 ```
 tests/
 ├── unit/              # Fast, isolated tests
@@ -34,6 +29,7 @@ tests/
 ```
 
 ### Naming Convention
+
 ```python
 # File: test_<module>.py
 # Function: test_<what>_<condition>_<expected>
@@ -45,28 +41,26 @@ def test_get_user_when_not_found_raises_error():
     ...
 ```
 
----
-
 ## Test Pattern (AAA)
+
 ```python
 @pytest.mark.asyncio
 async def test_create_user_saves_to_database(user_repository):
     # Arrange
     user_data = {"email": "test@example.com", "username": "testuser"}
-    
+
     # Act
     user = await user_repository.create(user_data)
-    
+
     # Assert
     assert user.id is not None
     assert user.email == "test@example.com"
 ```
 
----
-
 ## Fixtures
 
 ### Use conftest.py for Shared Fixtures
+
 ```python
 # tests/conftest.py
 import pytest
@@ -87,15 +81,15 @@ async def db_session() -> AsyncSession:
 ```
 
 ### Fixture Scope
+
 ```python
 @pytest.fixture(scope="session")  # Once per test session
 @pytest.fixture(scope="module")   # Once per test file
 @pytest.fixture(scope="function") # Default: once per test
 ```
 
----
-
 ## Markers
+
 ```python
 # Mark async tests
 @pytest.mark.asyncio
@@ -121,18 +115,10 @@ def test_email_validation(input, expected):
     assert validate_email(input) == expected
 ```
 
-### Register markers in pyproject.toml
-```toml
-[tool.pytest.ini_options]
-markers = [
-    "slow: marks tests as slow",
-    "integration: marks tests as integration tests",
-]
-```
-
----
+Register markers in `pyproject.toml` under `[tool.pytest.ini_options]`.
 
 ## Assertions
+
 ```python
 # Use plain assert
 assert result == expected
@@ -148,26 +134,14 @@ assert result is not None
 assert user.is_active
 ```
 
----
-
 ## Quick Tips
 
-✅ **Do:**
-- Keep tests independent (no shared state)
-- Use descriptive test names
-- One logical assertion per test
-- Use fixtures for setup/teardown
-- Test both success and error cases
+**Do:** Keep tests independent, use descriptive names, one logical assertion per test, use fixtures, test success and error cases.
 
-❌ **Don't:**
-- Use `assert True` or meaningless assertions
-- Test implementation details (test behavior)
-- Create test dependencies (test order shouldn't matter)
-- Use `sleep()` (use proper async/await or mocking)
-
----
+**Don't:** Use `assert True` or meaningless assertions; test implementation details; create test dependencies; use `sleep()` (use async/await or mocking).
 
 ## Running Tests
+
 ```bash
 # Run all tests
 pytest

@@ -1,9 +1,3 @@
----
-description: Logger injection pattern and standards
-globs: **/*.py
-alwaysApply: false
----
-
 # Logger Injection Rules
 
 ## Core Principle
@@ -18,25 +12,25 @@ alwaysApply: false
 4. **Import requirements** - Add these imports when using logger:
    ```python
    from service.shared.registry import inject
-   from service.shared.vocabulary import ResourceName
+   from service.config.vocabulary import ResourceName
    ```
 
 ## Correct Pattern
 
 ```python
 from service.shared.registry import inject
-from service.shared.vocabulary import ResourceName
+from service.config.vocabulary import ResourceName
 
 class MyService:
     """Service class example."""
-    
+
     def __init__(self) -> None:
         """Initialize the service.
-        
+
         Note: No self.logger here!
         """
         self.connection = None
-    
+
     async def connect(self) -> None:
         """Connect to service."""
         logger = inject(ResourceName.LOGGER)
@@ -46,7 +40,7 @@ class MyService:
         except Exception as e:
             logger.error(f"Connection failed: {e}", exc_info=True)
             raise
-    
+
     async def process(self, data: dict[str, Any]) -> None:
         """Process data."""
         logger = inject(ResourceName.LOGGER)
@@ -63,7 +57,7 @@ class MyService:
 class MyService:
     def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)  # NEVER do this!
-    
+
     async def process(self) -> None:
         self.logger.info("message")  # WRONG!
 ```
@@ -95,9 +89,3 @@ async def process(self) -> None:
 - ❌ Store logger as class member: `self.logger = ...`
 - ❌ Use `logging.getLogger()`
 - ❌ Pass logger as parameter (inject it instead)
-
-## Examples in Codebase
-
-Good examples:
-- `src/main.py` - Uses `logger = inject(ResourceName.LOGGER)` in each method
-- `.cursor/rules/python-repository.mdc` - Shows correct pattern in repository methods
