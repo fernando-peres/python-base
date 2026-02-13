@@ -1,3 +1,8 @@
+---
+name: repository
+description: Repository method template (try-except-finally, session, entity mapping)
+---
+
 # Repository Method Template
 
 Use this skill when implementing or modifying repository methods. All repository methods MUST follow the try-except-finally pattern for resource management and error handling.

@@ -1,3 +1,8 @@
+---
+name: bootstrap-and-registry
+description: Registry pattern, vocabulary (ResourceName), and bootstrap (initialize_service_resources)
+---
+
 # Bootstrap and Registry
 
 Use this skill when you need to obtain logger, settings, or other registered resources, or when modifying the main entry point or tests that use the registry.

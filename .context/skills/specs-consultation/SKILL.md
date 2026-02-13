@@ -1,3 +1,8 @@
+---
+name: specs-consultation
+description: Consulting and maintaining specifications before and after implementation
+---
+
 # Consulting and Maintaining Specifications
 
 Use this skill before implementing or modifying features. Specifications are the single source of truth; check specs before implementation and update them when code or requirements change.

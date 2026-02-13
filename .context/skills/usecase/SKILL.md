@@ -1,3 +1,8 @@
+---
+name: usecase
+description: How to implement a new use case (DTOs, execute signature, wiring, tests)
+---
+
 # How to Implement a New Use Case
 
 ## Overview

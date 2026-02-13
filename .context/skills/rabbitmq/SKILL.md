@@ -1,3 +1,8 @@
+---
+name: rabbitmq
+description: RabbitMQ exchange types, serialization, and ack handling
+---
+
 # RabbitMQ Patterns
 
 ## Overview

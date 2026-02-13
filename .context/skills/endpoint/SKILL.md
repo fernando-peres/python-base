@@ -1,3 +1,8 @@
+---
+name: endpoint
+description: How to implement a FastAPI endpoint (three-layer DTOs, container, HTTP mapping)
+---
+
 # How to Implement a FastAPI Endpoint
 
 Consult this skill when adding or changing HTTP endpoints. Constraints are in `.context/rules/architecture.md` and `.context/rules/dto-naming.md`.

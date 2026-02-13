@@ -1,3 +1,8 @@
+---
+name: migration
+description: Alembic migration patterns (one change per migration, downgrade, running commands)
+---
+
 # Alembic Migration Patterns
 
 ## Overview
@@ -26,4 +31,4 @@ This project uses Alembic for database migrations. Follow these patterns for con
 - Apply: `alembic upgrade head`.
 - Rollback one revision: `alembic downgrade -1`.
 
-Adjust commands to your project’s Alembic config (e.g. env, script location).
+Adjust commands to your project's Alembic config (e.g. env, script location).

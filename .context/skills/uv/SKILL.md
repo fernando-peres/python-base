@@ -1,3 +1,8 @@
+---
+name: uv
+description: Running Python code with uv (project root, uv run, venv)
+---
+
 # Running Python Code with uv
 
 This project uses `uv` as the Python package manager. Use this skill when running scripts, tests, or the application.
@@ -14,7 +19,7 @@ This project uses `uv` as the Python package manager. Use this skill when runnin
 
 2. **Preferred: use `uv run`**
    - No need to activate a venv manually.
-   - Uses the project’s virtual environment and dependencies.
+   - Uses the project's virtual environment and dependencies.
 
    ```bash
    uv run service/main.py
@@ -39,4 +44,4 @@ uv run pytest
 uv run python scripts/some_script.py
 ```
 
-`uv run` automatically uses the project’s virtual environment and dependencies.
+`uv run` automatically uses the project's virtual environment and dependencies.

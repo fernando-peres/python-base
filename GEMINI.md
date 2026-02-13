@@ -8,11 +8,11 @@
 @.context/rules/logger.md
 
 ## Skills
-@.context/skills/usecase.md
-@.context/skills/endpoint.md
-@.context/skills/repository.md
-@.context/skills/bootstrap-and-registry.md
-@.context/skills/migration.md
-@.context/skills/rabbitmq.md
-@.context/skills/uv.md
-@.context/skills/specs-consultation.md
+@.context/skills/usecase/SKILL.md
+@.context/skills/endpoint/SKILL.md
+@.context/skills/repository/SKILL.md
+@.context/skills/bootstrap-and-registry/SKILL.md
+@.context/skills/migration/SKILL.md
+@.context/skills/rabbitmq/SKILL.md
+@.context/skills/uv/SKILL.md
+@.context/skills/specs-consultation/SKILL.md
